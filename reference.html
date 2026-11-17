@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gradient Reference</title>
+<!--
+  CSS reference for the cases in src/cases.ts. Open in Chrome. Tile sizes are
+  in CSS px, which match dp in the app, so screenshots can be compared side by
+  side. Keep this list in sync with src/cases.ts.
+-->
+<style>
+  body { margin: 0; background: #111; color: #fff; font-family: system-ui, sans-serif; padding: 20px 32px; }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  h2 { font-size: 16px; margin: 12px 0 0; }
+  p { color: #aaa; font-size: 11px; margin: 0 0 8px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 16px; }
+  .cell { width: 200px; }
+  .backdrop { width: 200px; height: 56px; background: #808080; }
+  .tile { width: 200px; height: 56px; box-sizing: border-box; }
+  .id { font-size: 11px; font-weight: 700; margin-top: 4px; }
+  .label { font-size: 10px; color: #ddd; }
+  .expected { font-size: 10px; color: #888; }
+</style>
+</head>
+<body>
+<h1>experimental_backgroundImage: CSS reference</h1>
+<div id="root"></div>
+<script>
+  const RED_TO_BLUE = 'linear-gradient(to right, #ef4444, #3b82f6)';
+  const groups = [
+    {
+      title: 'Issue A: a plain View paints nothing',
+      description: 'All tiles use ' + RED_TO_BLUE + '. Only the extra style differs.',
+      cases: [
+        ['a1', 'no extra style', RED_TO_BLUE, ''],
+        ['a2', 'borderRadius: 8', RED_TO_BLUE, 'border-radius: 8px'],
+        ['a3', "borderWidth: 0.01, borderColor: 'transparent'", RED_TO_BLUE, 'border: 0.01px solid transparent'],
+        ['a4', "overflow: 'hidden'", RED_TO_BLUE, 'overflow: hidden'],
+      ],
+    },
+    {
+      title: 'Issue B: stops with an all-zero color break the gradient',
+      description: "All tiles have overflow: 'hidden' (the Issue A workaround) and fade red into the grey backdrop.",
+      cases: [
+        ['b1', 'transparent', 'linear-gradient(to right, #ef4444, transparent)'],
+        ['b2', 'rgba(0, 0, 0, 0)', 'linear-gradient(to right, #ef4444, rgba(0, 0, 0, 0))'],
+        ['b3', '#00000000', 'linear-gradient(to right, #ef4444, #00000000)'],
+        ['b4', 'rgba(0, 0, 0, 0) 50%, 3 stops', 'linear-gradient(to right, #ef4444, rgba(0, 0, 0, 0) 50%, #3b82f6)'],
+        ['b5', 'rgba(239, 68, 68, 0) (control)', 'linear-gradient(to right, #ef4444, rgba(239, 68, 68, 0))'],
+        ['b6', 'rgba(1, 1, 1, 0) (control)', 'linear-gradient(to right, #ef4444, rgba(1, 1, 1, 0))'],
+        ['b7', 'rgba(1, 1, 1, 0) 50%, 3 stops (control)', 'linear-gradient(to right, #ef4444, rgba(1, 1, 1, 0) 50%, #3b82f6)'],
+      ].map(([id, label, bg]) => [id, label, bg, 'overflow: hidden']),
+    },
+  ];
+  const root = document.getElementById('root');
+  for (const g of groups) {
+    const h2 = document.createElement('h2'); h2.textContent = g.title; root.append(h2);
+    const p = document.createElement('p'); p.textContent = g.description; root.append(p);
+    const grid = document.createElement('div'); grid.className = 'grid';
+    for (const [id, label, bg, extra] of g.cases) {
+      const cell = document.createElement('div'); cell.className = 'cell';
+      const backdrop = document.createElement('div'); backdrop.className = 'backdrop';
+      const tile = document.createElement('div'); tile.className = 'tile';
+      tile.style.cssText = extra; tile.style.backgroundImage = bg;
+      backdrop.append(tile);
+      const idEl = document.createElement('div'); idEl.className = 'id'; idEl.textContent = id.toUpperCase();
+      const labelEl = document.createElement('div'); labelEl.className = 'label'; labelEl.textContent = label;
+      cell.append(backdrop, idEl, labelEl);
+      grid.append(cell);
+    }
+    root.append(grid);
+  }
+</script>
+</body>
+</html>
